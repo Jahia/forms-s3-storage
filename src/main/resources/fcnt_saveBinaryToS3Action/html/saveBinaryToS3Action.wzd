@@ -1,0 +1,10 @@
+package fcnt_saveBinaryToS3Action.html
+
+action {
+    label "Save Binary To S3"
+    wizard "<ff-save-binary-to-s3 view-type='designView'></ff-save-binary-to-s3>"
+    properties {
+        actionname "savebinarytos3"
+        apiEntryPoint "/modules/forms/results"
+    }
+}

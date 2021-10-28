@@ -1,0 +1,13 @@
+{
+  "label": {
+    "settings": {
+      "title": "Forms S3 storage setting"
+    },
+    "action": {
+      "title": "Forms S3 storage - How to extend the ui ?"
+    },
+    "appsAccordion": {
+      "title": "Forms S3 storage"
+    }
+  }
+}
