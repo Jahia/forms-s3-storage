@@ -5,11 +5,11 @@
         'use strict';
 
         //Define the action directive
-        var sendBinaryToS3Action = function($log, $compile, contextualData, ffDataFactory, ffTemplateResolver) {
+        var saveBinaryToS3Action = function($log, ffTemplateResolver) {
             var directive = {
                 restrict: 'E',
                 templateUrl: function(el, attrs) {
-                    return ffTemplateResolver.resolveTemplatePath('${formfactory:addFormFactoryModulePath('/form-factory-actions/send-binary-to-s3/', renderContext)}', attrs.viewType);
+                    return ffTemplateResolver.resolveTemplatePath('${formfactory:addFormFactoryModulePath('/form-factory-actions/save-binary-to-s3/', renderContext)}', attrs.viewType);
                 },
                 link: linkFunc
             };
@@ -25,5 +25,5 @@
         //Attach the directive to the module
         angular
             .module('formFactory')
-            .directive('ffSendBinaryToS3', ['$log', '$compile', 'contextualData', 'ffDataFactory', 'ffTemplateResolver', sendBinaryToS3Action]);
+            .directive('ffSaveBinaryToS3', ['$log', 'ffTemplateResolver', saveBinaryToS3Action]);
     })();

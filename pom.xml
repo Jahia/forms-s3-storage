@@ -16,7 +16,10 @@
     <version>1.0.0-SNAPSHOT</version>
     <packaging>bundle</packaging>
     <description>This is the custom module (Forms S3 storage) for running on a Jahia server.</description>
-
+    <properties>
+        <jahia-depends>default,forms-core</jahia-depends>
+        <require-capability>osgi.extender;filter:="(osgi.extender=org.jahia.bundles.blueprint.extender.config)"</require-capability>
+    </properties>
     <scm>
         <connection>scm:git:git@github.com:Jahia/forms-s3-storage.git</connection>
         <developerConnection>scm:git:git@github.com:Jahia/forms-s3-storage.git</developerConnection>
@@ -27,7 +30,7 @@
         <dependency>
             <groupId>org.jahia.modules</groupId>
             <artifactId>forms-core</artifactId>
-            <version>[2.0,3.0)</version>
+            <version>3.3.0</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>
@@ -45,6 +48,18 @@
                 <enabled>true</enabled>
             </snapshots>
         </repository>
+        <repository>
+            <releases>
+                <enabled>true</enabled>
+                <updatePolicy>never</updatePolicy>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+            <id>form-factory</id>
+            <name>Form Factory Repository</name>
+            <url>https://devtools.jahia.com/nexus/content/repositories/form-factory-releases</url>
+        </repository>
     </repositories>
 
     <build>
@@ -55,7 +70,7 @@
                 <extensions>true</extensions>
                 <configuration>
                     <instructions>
-                        <Jahia-Depends>default</Jahia-Depends>
+                        <Import-Package>org.jahia.modules.forms.taglib,${jahia.plugin.projectPackageImport},*</Import-Package>
                     </instructions>
                 </configuration>
             </plugin>
