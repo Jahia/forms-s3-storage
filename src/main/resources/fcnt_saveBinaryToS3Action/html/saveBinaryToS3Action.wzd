@@ -4,5 +4,6 @@ action {
     label "Save Binary To S3"
     properties {
         actionname "savebinarytos3"
+        apiEntryPoint "/modules/forms/results"
     }
 }

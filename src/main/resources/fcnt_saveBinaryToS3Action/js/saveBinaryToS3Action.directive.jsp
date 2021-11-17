@@ -5,7 +5,7 @@
         'use strict';
 
         //Define the action directive
-        var saveBinaryToS3Action = function($log, ffTemplateResolver) {
+        var saveBinaryToS3Action = function($log, $compile, contextualData, ffDataFactory, ffTemplateResolver) {
             var directive = {
                 restrict: 'E',
                 templateUrl: function(el, attrs) {
@@ -25,5 +25,5 @@
         //Attach the directive to the module
         angular
             .module('formFactory')
-            .directive('ffSaveBinaryToS3', ['$log', 'ffTemplateResolver', saveBinaryToS3Action]);
+            .directive('ffSaveBinaryToS3', ['$log', '$compile', 'contextualData', 'ffDataFactory', 'ffTemplateResolver', saveBinaryToS3Action]);
     })();

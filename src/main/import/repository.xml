@@ -15,6 +15,7 @@
                <form-factory-actions jcr:primaryType="jnt:contentFolder">
                   <save-binary-to-s3 jcr:primaryType="fcnt:saveBinaryToS3Action">
                      <j:translation_en jcr:language="en"
+                                       jcr:mixinTypes="mix:title"
                                        jcr:primaryType="jnt:translation"
                                        jcr:title="Save Binary To S3"/>
                      <actionname jcr:primaryType="fcnt:definitionOptions" jsonValue="savebinarytos3"/>
