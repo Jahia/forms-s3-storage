@@ -8,6 +8,7 @@ import org.jahia.bin.ActionResult;
 import org.jahia.modules.forms.actions.SaveToJCRBackgroundJob;
 import org.jahia.modules.forms.actions.SendEmailAction;
 import org.jahia.modules.forms.api.ApiBackendType;
+import org.jahia.se.modules.forms.storage.FormS3StorageServiceImpl;
 import org.jahia.services.content.*;
 import org.jahia.services.render.RenderContext;
 import org.jahia.services.render.Resource;
@@ -30,7 +31,6 @@ import javax.jcr.query.Query;
 import javax.jcr.query.QueryManager;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.*;
@@ -50,10 +50,12 @@ public class SaveBinaryToS3Action extends Action implements ApiBackendType {
 
     private SchedulerService schedulerService;
     private static volatile SaveBinaryToS3Action instance;
+    private FormS3StorageServiceImpl s3StorageService;
 
     private JCRTemplate jcrTemplate;
 
     private SaveBinaryToS3Action() {
+        this.s3StorageService = new FormS3StorageServiceImpl();
     }
 
     /**
@@ -80,7 +82,7 @@ public class SaveBinaryToS3Action extends Action implements ApiBackendType {
     }
 
     public String getBackendType() {
-        return "JCR+S3";
+        return "JCR";
     }
 
     @Override
@@ -309,9 +311,12 @@ public class SaveBinaryToS3Action extends Action implements ApiBackendType {
                         fileTypes.add(fileType);
 
                         try {
-                            uploadFileAndAppendFileDataToResult(req, absoluteUrls, urlArray,
-                                    nameArray, typeArray, sizeArray, imageArray,
-                                    currentResult, fileTempPath, fileOrigName, fileType);
+//                            uploadFileAndAppendFileDataToResult(req, absoluteUrls, urlArray,
+//                                    nameArray, typeArray, sizeArray, imageArray,
+//                                    currentResult, fileTempPath, fileOrigName, fileType);
+                            uploadFileAndAppendFileDataToResult(
+                                    urlArray, nameArray, typeArray, sizeArray, imageArray,
+                                    fileTempPath, fileOrigName, fileType);
                         } catch (IOException e) {
                             logger.error(e.getMessage(), e);
                         }
@@ -327,21 +332,42 @@ public class SaveBinaryToS3Action extends Action implements ApiBackendType {
         }
     }
 
-    private void uploadFileAndAppendFileDataToResult(HttpServletRequest req,
-                                                     List<String> absoluteUrls, JSONArray urlArray,
-                                                     JSONArray nameArray, JSONArray typeArray, JSONArray
-                                                             sizeArray, JSONArray imageArray, JCRNodeWrapper currentResult,
-                                                     String fileTempPath, String fileOrigName, String fileType) throws RepositoryException, FileNotFoundException {
-        JCRNodeWrapper file = currentResult.uploadFile(fileOrigName,
-                new FileInputStream(fileTempPath), JCRContentUtils.getMimeType(fileOrigName, fileType));
-        absoluteUrls.add(file.getAbsoluteUrl(req));
-        file.denyRoles("u:guest", Collections.singleton("reader"));
-        urlArray.put(file.getUrl());
-        nameArray.put(file.getDisplayableName());
-        sizeArray.put(file.getFileContent().getContentLength());
-        typeArray.put(file.getFileContent().getContentType());
-        imageArray.put(file.getFileContent().getContentType().startsWith("image"));
+
+    private void uploadFileAndAppendFileDataToResult(
+        JSONArray urlArray,
+        JSONArray nameArray,
+        JSONArray typeArray,
+        JSONArray sizeArray,
+        JSONArray imageArray,
+        String fileTempPath,
+        String fileOrigName,
+        String fileType
+    ) throws FileNotFoundException {
+        byte[] attachment = s3StorageService.getObjectFile(fileTempPath);
+        String url = s3StorageService.upload(attachment,fileOrigName,fileType);
+
+        urlArray.put(url);
+        nameArray.put(fileOrigName);
+        sizeArray.put((long) attachment.length);
+        typeArray.put(fileType);
+        imageArray.put(false);
     }
+
+//    private void uploadFileAndAppendFileDataToResult(HttpServletRequest req,
+//                                                     List<String> absoluteUrls, JSONArray urlArray,
+//                                                     JSONArray nameArray, JSONArray typeArray, JSONArray
+//                                                             sizeArray, JSONArray imageArray, JCRNodeWrapper currentResult,
+//                                                     String fileTempPath, String fileOrigName, String fileType) throws RepositoryException, FileNotFoundException {
+//        JCRNodeWrapper file = currentResult.uploadFile(fileOrigName,
+//                new FileInputStream(fileTempPath), JCRContentUtils.getMimeType(fileOrigName, fileType));
+//        absoluteUrls.add(file.getAbsoluteUrl(req));
+//        file.denyRoles("u:guest", Collections.singleton("reader"));
+//        urlArray.put(file.getUrl());
+//        nameArray.put(file.getDisplayableName());
+//        sizeArray.put(file.getFileContent().getContentLength());
+//        typeArray.put(file.getFileContent().getContentType());
+//        imageArray.put(file.getFileContent().getContentType().startsWith("image"));
+//    }
 
     private void populateJsonAndResultNode(JSONArray urlArray, JSONArray nameArray,
                                            JSONArray typeArray, JSONArray sizeArray,
