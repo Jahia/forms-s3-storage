@@ -314,9 +314,12 @@ public class SaveBinaryToS3Action extends Action implements ApiBackendType {
 //                            uploadFileAndAppendFileDataToResult(req, absoluteUrls, urlArray,
 //                                    nameArray, typeArray, sizeArray, imageArray,
 //                                    currentResult, fileTempPath, fileOrigName, fileType);
+                            String formResultUUID = currentFormResult.getIdentifier();
+                            String s3FileName = formResultUUID+"/"+fileOrigName;
+
                             uploadFileAndAppendFileDataToResult(
                                     urlArray, nameArray, typeArray, sizeArray, imageArray,
-                                    fileTempPath, fileOrigName, fileType);
+                                    fileTempPath, s3FileName, fileType);
                         } catch (IOException e) {
                             logger.error(e.getMessage(), e);
                         }

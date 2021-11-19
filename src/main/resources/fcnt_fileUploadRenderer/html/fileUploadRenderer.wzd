@@ -1,0 +1,4 @@
+renderer {
+    label "File Upload Renderer"
+    name "fileUpload"
+}
