@@ -353,8 +353,8 @@ public class SaveBinaryToS3Action extends Action implements ApiBackendType {
         nameArray.put(fileOrigName);
         sizeArray.put((long) attachment.length);
         typeArray.put(fileType);
-        imageArray.put(false);
-//        imageArray.put(fileType.startsWith("image"));
+//        imageArray.put(false);
+        imageArray.put(fileType.startsWith("image"));
     }
 
 //    private void uploadFileAndAppendFileDataToResult(HttpServletRequest req,

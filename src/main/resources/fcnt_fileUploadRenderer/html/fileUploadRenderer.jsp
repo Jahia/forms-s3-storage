@@ -17,28 +17,23 @@
 <%--@elvariable id="scriptInfo" type="java.lang.String"--%>
 <%--@elvariable id="url" type="org.jahia.services.render.URLGenerator"--%>
 <%--@elvariable id="workspace" type="java.lang.String"--%>
-<c:set var="title" value="RV is back again"/>
-<utility:logger level="info" value="FORMS ****** ${currentNode.identifier}"/>
-
-
 
 <@ if (!Array.isArray(data.image)) { @>
     <@ if(data.image) { @>
         <a href="<@=data.url.replace('/repository/','/files/')@>" target="_blank">
-            <img style="object-fit: contain;width: 80px;height: 80px;" src="<@=data.url.replace('/repository/','/files/')@>?t=thumbnail2"/>
+            <img style="object-fit: contain;width: 80px;height: 80px;" src="<@=data.url.replace('/repository/','/files/')@>"/>
         </a>
     <@} else {@>
-        <a href="<@=data.url@>" target="_blank"><@=data.name@></a>
+        <a class="hack-link" href="<@=data.url@>" target="_blank"><@=data.name@></a>
     <@}@>
 <@ } else { @>
     <@ data.url.forEach(function(element, index){ @>
         <@ if(data.image[index]) { @>
-         <a style="display: block"
-            href="<@=element.replace('/repository/','/files/')@>" target="_blank">
-             <img style="object-fit: contain;width: 80px;height: 80px;"src="<@=element.replace('/repository/','/files/')@>?t=thumbnail2"/>
+         <a class="hack-float" href="<@=element.replace('/repository/','/files/')@>" target="_blank">
+             <img style="object-fit: cover;width: 80px;height: 80px;"src="<@=element.replace('/repository/','/files/')@>"/>
          </a>
         <@} else { @>
-           <a style="display: block" href="<@=element@>" target="_blank" title="${title}"><@=data.name[index]@></a>
+           <a class="hack-link" style="display: block" href="<@=element@>" target="_blank"><@=data.name[index].replace('*/','')@></a>
         <@}@>
     <@ }) @>
 <@ } @>
