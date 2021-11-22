@@ -78,7 +78,6 @@
         // Initializing backbone objects
         // Initializing backbone objects
         var dataCollection = new PageableResults();
-        console.log("dataCollection : ",dataCollection);
         dataCollection.site = "${renderContext.site.name}";
         dataCollection.formId = selectedResult;
         moment.locale('${renderContext.UILocale.language}');
