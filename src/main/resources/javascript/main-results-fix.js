@@ -13,18 +13,35 @@ PageableResultsView = Backbone.View.extend({
             return {
                 type : type,
                 body: function (data, row, column, node) {
+                    console.log("formater data: ",data);
                     if (typeof data === "string") {
                         // rendered source path
                         if (data.indexOf("href") !== -1){
-                            //second group retrieves href value
-                            let groupArray = data.match(/<a\s+(?:[^>]*?\s+)?href=(["'])(.*?)\1/);
-                            let link = groupArray[2];
-                            //if URL is relative
-                            if (!link.startsWith("http")) {
-                            // if (!link.startsWith(origin)) {
-                                return origin + link;
-                            }
-                            return link;
+                            const parser = new DOMParser();
+                            const el = parser.parseFromString(data, "text/html");
+                            const links = [...el.getElementsByTagName( 'a' )]
+                                .map(a=>a.href)
+                                .reduce((str,link,index,array)=>{
+                                    if (!link.startsWith("http")) {
+                                        link = origin + link;
+                                    }
+                                    str += link;
+                                    if(index>0 && index < array.length-1)
+                                        str +=";";
+                                    return str
+                                },"");
+
+                            return links;
+
+                            // //second group retrieves href value
+                            // let groupArray = data.match(/<a\s+(?:[^>]*?\s+)?href=(["'])(.*?)\1/);
+                            // let link = groupArray[2];
+                            // //if URL is relative
+                            // if (!link.startsWith("http")) {
+                            // // if (!link.startsWith(origin)) {
+                            //     return origin + link;
+                            // }
+                            // return link;
                         } else if (data.indexOf("<input type='checkbox'") !== -1) {
                             return '';
                         }
@@ -52,6 +69,7 @@ PageableResultsView = Backbone.View.extend({
                         //Process matrix fields
                         if (data.indexOf("class=\"dl-horizontal\">") !== -1) {
                             var object = $(data)[0];
+                            console.log("FORMS object: ",object);
                             var result = this.type === "excel" ? "=" : "";
                             for (var i = 0; i < object.children.length; i++) {
                                 var child = object.children[i];
