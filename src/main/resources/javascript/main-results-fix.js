@@ -26,7 +26,7 @@ PageableResultsView = Backbone.View.extend({
                                         link = origin + link;
                                     }
                                     str += link;
-                                    if(index>0 && index < array.length-1)
+                                    if(index < array.length-1)
                                         str +=";";
                                     return str
                                 },"");

@@ -1,6 +1,6 @@
 package org.jahia.se.modules.forms.storage;
 
-import com.amazonaws.util.DateUtils;
+//import com.amazonaws.util.DateUtils;
 import org.jahia.se.modules.forms.service.FormS3StorageService;
 //import org.osgi.service.component.annotations.Component;
 import software.amazon.awssdk.core.sync.RequestBody;
@@ -10,8 +10,8 @@ import software.amazon.awssdk.services.s3.S3Client;
 import com.amazonaws.services.cloudfront.CloudFrontUrlSigner;
 import com.amazonaws.services.cloudfront.util.SignerUtils.Protocol;
 
-import org.jahia.se.modules.forms.storage.auth.AWS4SignerBase;
-import org.jahia.se.modules.forms.storage.auth.AWS4SignerForQueryParameterAuth;
+//import org.jahia.se.modules.forms.storage.auth.AWS4SignerBase;
+//import org.jahia.se.modules.forms.storage.auth.AWS4SignerForQueryParameterAuth;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,20 +20,20 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URL;
-import java.security.Security;
+//import java.security.Security;
 import java.security.spec.InvalidKeySpecException;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+//import java.util.HashMap;
+//import java.util.Map;
 
 //@Component(service = FormS3StorageService.class)
 public class FormS3StorageServiceImpl implements FormS3StorageService {
     private static Logger logger = LoggerFactory.getLogger(FormS3StorageServiceImpl.class);
-//    Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
 
     private S3Client s3Client;
     private final String bucket = "forms-s3";
-
 
     public FormS3StorageServiceImpl() {
 //        .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create(accessKey, secretKey)))
@@ -54,21 +54,30 @@ public class FormS3StorageServiceImpl implements FormS3StorageService {
             PutObjectResponse response = s3Client.putObject(putOb,
                     RequestBody.fromBytes(attachment));
 
-//            final URL reportUrl = s3Client.utilities().getUrl(GetUrlRequest.builder().bucket(bucket).key(fileName).build());
+            //Public url access
+//            final String reportUrl = s3Client.utilities().getUrl(GetUrlRequest.builder().bucket(bucket).key(fileName).build()).toString();
 
-            final URL endpointUrl = s3Client.utilities().getUrl(GetUrlRequest.builder().bucket(bucket).key(fileName).build());
-            String AWS_ACCESS_KEY = System.getenv("AWS_ACCESS_KEY_ID");
-            String AWS_SECRET_KEY = System.getenv("AWS_SECRET_ACCESS_KEY");
+            //7 days S3 private access
+//            final URL endpointUrl = s3Client.utilities().getUrl(GetUrlRequest.builder().bucket(bucket).key(fileName).build());
+//            String AWS_ACCESS_KEY = System.getenv("AWS_ACCESS_KEY_ID");
+//            String AWS_SECRET_KEY = System.getenv("AWS_SECRET_ACCESS_KEY");
+//            final String reportUrl = getPresignedUrlToS3Object(endpointUrl,AWS_ACCESS_KEY,AWS_SECRET_KEY);
 
-            final String reportUrl = getPresignedUrlToS3Object(endpointUrl,AWS_ACCESS_KEY,AWS_SECRET_KEY);
-//
+            //1Years cloud front access
+            final String reportUrl = getCloudFrontURLSigned(fileName);
+
             logger.debug("response = " + response);
             logger.debug("reportUrl = " + reportUrl);
 
-//            return reportUrl.toString();
             return reportUrl;
         } catch (S3Exception e) {
             logger.error(e.getMessage());
+        } catch (InvalidKeySpecException e) {
+            logger.error(e.getMessage());
+//            e.printStackTrace();
+        } catch (IOException e) {
+            logger.error(e.getMessage());
+//            e.printStackTrace();
         }
         return "";
     }
@@ -98,7 +107,41 @@ public class FormS3StorageServiceImpl implements FormS3StorageService {
         }
         return bytesArray;
     }
-//-------> plan b
+
+    /**
+     * Cloud Front 1 Year URL access with
+     * the CloudFrontUrlSigner utility class in the AWS SDK for Java (version 1)
+     */
+    private String getCloudFrontURLSigned(String s3ObjectKey) throws InvalidKeySpecException, IOException {
+        Protocol protocol = Protocol.http;
+        String distributionDomain = System.getenv("AWS_CLOUDFRONT_DOMAIN");
+        File privateKeyFile = new File(System.getenv("AWS_CLOUDFRONT_PEM_PATH"));
+        String keyPairId =System.getenv("AWS_CLOUDFRONT_KEY_PAIR_ID");
+        Date currentDate = new Date();
+        LocalDateTime localDateTime = currentDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
+        localDateTime = localDateTime.plusYears(1);
+        Date dateLessThan = Date.from(localDateTime.atZone(ZoneId.systemDefault()).toInstant());
+
+        String signedURLWithCannedPolicy = CloudFrontUrlSigner.getSignedURLWithCannedPolicy(
+                protocol, distributionDomain, privateKeyFile,
+                s3ObjectKey, keyPairId, dateLessThan);
+
+//        Date dateLessThan = DateUtils.parseISO8601Date("2011-11-14T22:20:00.000Z");
+//        Date dateGreaterThan = new Date(System.currentTimeMillis()+1000*60*60*24*365);
+//        String ipRange = "0.0.0.0/0";//"192.168.0.1/24";
+
+//        String url2 = CloudFrontUrlSigner.getSignedURLWithCustomPolicy(
+//                protocol, distributionDomain, privateKeyFile,
+//                s3ObjectKey, keyPairId, dateLessThan,
+//                dateGreaterThan, ipRange);
+
+        return signedURLWithCannedPolicy;
+    }
+
+//    /**
+//     * Cloud Front 1 Year URL access with the AWS SDK for Java (version 2)
+//     * NOTE to be review doesn't work as it is
+//     */
 //    private String getCloudFrontURLSigned(String s3ObjectKey){
 //        String distributionDomain = System.getenv("AWS_CLOUDFRONT_DOMAIN");
 //        String privateKeyFilePath = System.getenv("AWS_CLOUDFRONT_PEM_PATH");
@@ -150,61 +193,38 @@ public class FormS3StorageServiceImpl implements FormS3StorageService {
 //        return signedUrl;
 //    }
 
-//----> bon code
-//    private String getCloudFrontURLSigned(String s3ObjectKey, String awsAccessKey, String awsSecretKey) throws InvalidKeySpecException, IOException {
-//        Protocol protocol = Protocol.http;
-//        String distributionDomain = System.getenv("AWS_CLOUDFRONT_DOMAIN");
-//        File privateKeyFile = new File(System.getenv("AWS_CLOUDFRONT_PEM_PATH"));
-//        String keyPairId = System.getenv("AWS_ACCESS_KEY_ID");//"APKAJCEOKRHC3XIVU5NA";
-//        Date dateLessThan = new Date(System.currentTimeMillis()+1000*60*60*24*365);
-////        Date dateLessThan = DateUtils.parseISO8601Date("2011-11-14T22:20:00.000Z");
-////        Date dateGreaterThan = DateUtils.parseISO8601Date("2011-11-14T22:20:00.000Z");
-////        String ipRange = "0.0.0.0/0";//"192.168.0.1/24";
+
+
+
+//    /**
+//     * Construct a basic presigned url to the endpointUrl in the
+//     * given bucket and region using path-style object addressing. The signature
+//     * V4 authorization data is embedded in the url as query parameters.
+//     */
+//    private String getPresignedUrlToS3Object(URL endpointUrl, String awsAccessKey, String awsSecretKey) {
 //
-//        String url1 = CloudFrontUrlSigner.getSignedURLWithCannedPolicy(
-//                protocol, distributionDomain, privateKeyFile,
-//                s3ObjectKey, keyPairId, dateLessThan);
+//        // construct the query parameter string to accompany the url
+//        Map<String, String> queryParams = new HashMap<>();
+//        String regionName = System.getenv("AWS_REGION");
 //
-////        String url2 = CloudFrontUrlSigner.getSignedURLWithCustomPolicy(
-////                protocol, distributionDomain, privateKeyFile,
-////                s3ObjectKey, keyPairId, dateLessThan,
-////                dateGreaterThan, ipRange);
+//        // for SignatureV4, the max expiry for a presigned url is 7 days,
+//        // expressed in seconds
+//        int expiresIn = 7 * 24 * 60 * 60;
+//        queryParams.put("X-Amz-Expires", "" + expiresIn);
 //
-//        return url1;
+//        // we have no headers for this sample, but the signer will add 'host'
+//        Map<String, String> headers = new HashMap<String, String>();
+//
+//        AWS4SignerForQueryParameterAuth signer = new AWS4SignerForQueryParameterAuth(
+//                endpointUrl, "GET", "s3", regionName);
+//        String authorizationQueryParameters = signer.computeSignature(headers,
+//                queryParams,
+//                AWS4SignerBase.UNSIGNED_PAYLOAD,
+//                awsAccessKey,
+//                awsSecretKey);
+//
+//        // build the presigned url to incorporate the authorization elements as query parameters
+//        String presignedUrl = endpointUrl.toString() + "?" + authorizationQueryParameters;
+//        return presignedUrl;
 //    }
-
-    /**
-     * Construct a basic presigned url to the object '/ExampleObject.txt' in the
-     * given bucket and region using path-style object addressing. The signature
-     * V4 authorization data is embedded in the url as query parameters.
-     */
-    private String getPresignedUrlToS3Object(URL endpointUrl, String awsAccessKey, String awsSecretKey) {
-
-        // construct the query parameter string to accompany the url
-        Map<String, String> queryParams = new HashMap<>();
-        String regionName = System.getenv("AWS_REGION");
-
-        // for SignatureV4, the max expiry for a presigned url is 7 days,
-        // expressed in seconds
-        int expiresIn = 7 * 24 * 60 * 60;
-        queryParams.put("X-Amz-Expires", "" + expiresIn);
-
-        // we have no headers for this sample, but the signer will add 'host'
-        Map<String, String> headers = new HashMap<String, String>();
-
-        AWS4SignerForQueryParameterAuth signer = new AWS4SignerForQueryParameterAuth(
-                endpointUrl, "GET", "s3", regionName);
-        String authorizationQueryParameters = signer.computeSignature(headers,
-                queryParams,
-                AWS4SignerBase.UNSIGNED_PAYLOAD,
-                awsAccessKey,
-                awsSecretKey);
-
-        // build the presigned url to incorporate the authorization elements as query parameters
-        String presignedUrl = endpointUrl.toString() + "?" + authorizationQueryParameters;
-        return presignedUrl;
-//        System.out.println("--------- Computed presigned url ---------");
-//        System.out.println(presignedUrl);
-//        System.out.println("------------------------------------------");
-    }
 }
