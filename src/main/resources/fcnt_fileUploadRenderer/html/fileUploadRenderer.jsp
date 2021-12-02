@@ -29,11 +29,20 @@
 <@ } else { @>
     <@ data.url.forEach(function(element, index){ @>
         <@ if(data.image[index]) { @>
+        <@ if(index===0) { @><div class="hack-image-spacer"></div><@}@>
          <a class="hack-float" href="<@=element.replace('/repository/','/files/')@>" target="_blank">
              <img style="object-fit: cover;width: 80px;height: 80px;"src="<@=element.replace('/repository/','/files/')@>"/>
          </a>
         <@} else { @>
-           <a class="hack-link" style="display: block" href="<@=element@>" target="_blank"><@=data.name[index].replace('*/','')@></a>
+            <@ if(data.type[index].includes('video')) { @>
+                <@ if(index===0) { @><div class="hack-video-spacer"></div><@}@>
+                <video class="hack-float" controls width="150">
+                    <source src="<@=element@>"
+                            type="<@=data.type[index]@>">
+                </video>
+            <@} else { @>
+                <a class="hack-link" style="display: block" href="<@=element@>" target="_blank"><@=data.name[index].replace('*/','')@></a>
+            <@}@>
         <@}@>
     <@ }) @>
 <@ } @>

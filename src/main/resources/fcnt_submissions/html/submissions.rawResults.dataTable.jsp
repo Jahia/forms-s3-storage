@@ -162,13 +162,19 @@
         text-overflow: ellipsis;
         overflow: hidden;
     }
-    a.hack-float {
+    a.hack-float,video.hack-float {
         float: left;
         margin-right: 5px;
         margin-bottom: 5px;
     }
-    a.hack-float:nth-child(4n + 4) {
-        clear: left;
+    /*a.hack-float:nth-child(4n + 4),video.hack-float:nth-child(4n + 4) {*/
+    /*    clear: left;*/
+    /*}*/
+    div.hack-image-spacer{
+        width:255px
+    }
+    div.hack-video-spacer{
+        width:310px
     }
 </style>
 
