@@ -10,38 +10,29 @@ PageableResultsView = Backbone.View.extend({
                     'text/html');
                 return dom.body.textContent;
             }
+            const reduceLinksArray = (links) => links.reduce((str,link,index,array)=>{
+                if (!link.startsWith("http")) {
+                    link = origin + link;
+                }
+                str += link;
+                if(index < array.length-1)
+                    str +=";";
+                return str
+            },"");
+
             return {
                 type : type,
                 body: function (data, row, column, node) {
-                    console.log("formater data: ",data);
+                    // console.log("formater data: ",data);
                     if (typeof data === "string") {
                         // rendered source path
-                        if (data.indexOf("href") !== -1){
+                        if (data.indexOf("href") !== -1 || data.indexOf("source") !== -1){
                             const parser = new DOMParser();
                             const el = parser.parseFromString(data, "text/html");
-                            const links = [...el.getElementsByTagName( 'a' )]
-                                .map(a=>a.href)
-                                .reduce((str,link,index,array)=>{
-                                    if (!link.startsWith("http")) {
-                                        link = origin + link;
-                                    }
-                                    str += link;
-                                    if(index < array.length-1)
-                                        str +=";";
-                                    return str
-                                },"");
-
+                            const aLinks = reduceLinksArray([...el.getElementsByTagName( 'a' )].map(a=>a.href));
+                            const sLinks = reduceLinksArray([...el.getElementsByTagName( 'source' )].map(source=>source.src));
+                            const links = sLinks.length>0 && aLinks.length>0?aLinks+";"+sLinks:aLinks+sLinks;
                             return links;
-
-                            // //second group retrieves href value
-                            // let groupArray = data.match(/<a\s+(?:[^>]*?\s+)?href=(["'])(.*?)\1/);
-                            // let link = groupArray[2];
-                            // //if URL is relative
-                            // if (!link.startsWith("http")) {
-                            // // if (!link.startsWith(origin)) {
-                            //     return origin + link;
-                            // }
-                            // return link;
                         } else if (data.indexOf("<input type='checkbox'") !== -1) {
                             return '';
                         }

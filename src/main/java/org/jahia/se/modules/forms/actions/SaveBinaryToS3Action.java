@@ -31,6 +31,7 @@ import javax.jcr.query.Query;
 import javax.jcr.query.QueryManager;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.*;
@@ -347,14 +348,32 @@ public class SaveBinaryToS3Action extends Action implements ApiBackendType {
         String fileType
     ) throws FileNotFoundException {
         byte[] attachment = s3StorageService.getObjectFile(fileTempPath);
-        String url = s3StorageService.upload(attachment,fileOrigName,fileType);
+        String fileName = cleanFilename(fileOrigName);
+        String url = s3StorageService.upload(attachment,fileName,fileType);
+        File tempFile = new File(fileTempPath);
+        if(tempFile.delete()){
+            logger.info("temp file deleted :"+fileTempPath);
+        }else{
+            logger.warn("temp file NOT deleted :"+fileTempPath);
+        }
 
         urlArray.put(url);
-        nameArray.put(fileOrigName);
+        nameArray.put(fileName);
         sizeArray.put((long) attachment.length);
         typeArray.put(fileType);
 //        imageArray.put(false);
         imageArray.put(fileType.startsWith("image"));
+    }
+
+    private String cleanFilename (String filename){
+        return filename.replace(" ","_")
+                .replace("@","_")
+                .replace("'","_")
+                .replace("`","_")
+                .replace("!","_")
+                .replace(":","_")
+                .replace(";","_")
+                .replace("?","_");
     }
 
 //    private void uploadFileAndAppendFileDataToResult(HttpServletRequest req,

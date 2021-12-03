@@ -21,6 +21,8 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URL;
 //import java.security.Security;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.security.spec.InvalidKeySpecException;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -108,12 +110,14 @@ public class FormS3StorageServiceImpl implements FormS3StorageService {
         return bytesArray;
     }
 
+
+
     /**
      * Cloud Front 1 Year URL access with
      * the CloudFrontUrlSigner utility class in the AWS SDK for Java (version 1)
      */
     private String getCloudFrontURLSigned(String s3ObjectKey) throws InvalidKeySpecException, IOException {
-        Protocol protocol = Protocol.http;
+        Protocol protocol = Protocol.https;
         String distributionDomain = System.getenv("AWS_CLOUDFRONT_DOMAIN");
         File privateKeyFile = new File(System.getenv("AWS_CLOUDFRONT_PEM_PATH"));
         String keyPairId =System.getenv("AWS_CLOUDFRONT_KEY_PAIR_ID");
