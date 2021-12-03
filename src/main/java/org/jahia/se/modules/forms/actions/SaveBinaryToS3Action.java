@@ -367,6 +367,9 @@ public class SaveBinaryToS3Action extends Action implements ApiBackendType {
 
     private String cleanFilename (String filename){
         return filename.replace(" ","_")
+                .replace("è","e")
+                .replace("é","e")
+                .replace("à","a")
                 .replace("@","_")
                 .replace("'","_")
                 .replace("`","_")
